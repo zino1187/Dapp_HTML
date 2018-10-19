@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 16px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* style the container */
+        .container {
+            position: relative;
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            padding: 20px 0 30px 0;
+        }
+
+        /* style inputs and link buttons */
+        input,
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            margin: 5px 0;
+            opacity: 0.85;
+            display: inline-block;
+            font-size: 17px;
+            line-height: 20px;
+            text-decoration: none;
+            /* remove underline from anchors */
+        }
+
+        input:hover,
+        .btn:hover {
+            opacity: 1;
+        }
+
+        /* add appropriate colors to fb, twitter and google buttons */
+        .fb {
+            background-color: #3B5998;
+            color: white;
+        }
+
+        .twitter {
+            background-color: #55ACEE;
+            color: white;
+        }
+
+        .google {
+            background-color: #dd4b39;
+            color: white;
+        }
+
+        /* style the submit button */
+        input[type=button] {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        input[type=submit]:hover {
+            background-color: #45a049;
+        }
+
+        /* Two-column layout */
+        .col {
+            float: left;
+            width: 50%;
+            margin: auto;
+            padding: 0 50px;
+            margin-top: 6px;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* vertical line */
+        .vl {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%);
+            border: 2px solid #ddd;
+            height: 175px;
+        }
+
+        /* text inside the vertical line */
+        .vl-innertext {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            padding: 8px 10px;
+        }
+
+        /* hide some text on medium and large screens */
+        .hide-md-lg {
+            display: none;
+        }
+
+        /* bottom container */
+        .bottom-container {
+            text-align: center;
+            background-color: #666;
+            border-radius: 0px 0px 4px 4px;
+        }
+
+        /* Responsive layout - when the screen is less than 650px wide, make the two columns stack on top of each other instead of next to each other */
+        @media screen and (max-width: 650px) {
+            .col {
+                width: 100%;
+                margin-top: 0;
+            }
+
+            /* hide the vertical line */
+            .vl {
+                display: none;
+            }
+
+            /* show the hidden text on small screens */
+            .hide-md-lg {
+                display: block;
+                text-align: center;
+            }
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 6px;
+            margin-bottom: 16px;
+            resize: vertical;
+        }
+        
+    </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+    <script>
+        var web3;
+
+        function getCoinBase(acc) {
+            var coinbase = web3.eth.coinbase;
+
+            if (acc == coinbase) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        if (typeof web3 !== 'undefined') {
+            web3 = new Web3(web3.currentProvider);
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider("http://172.30.1.17:8545"));
+        }
+
+
+        //계정 수 구하기
+        /*         
+        document.write("계정 수: " + web3.eth.accounts.length);
+        document.write("<br>");
+         */
+        //잔고 구하기
+        //var balance = web3.eth.getBalance(web3.eth.accounts[1]);
+
+        /*     
+        var mining = web3.eth.mining;
+
+        if (!mining) {
+            document.write("채굴을 중지한 상태입니다");
+            document.write("<br>");
+        }       
+        */
+        var arr = [];
+
+        for (var i = 0; i < web3.eth.accounts.length; i++) {
+            var base = getCoinBase(web3.eth.accounts[i]);
+            var bg;
+            if (base) {
+                bg = "red"
+            } else {
+                bg = ""
+            }
+            arr.push({
+                account: web3.eth.accounts[i],
+                balance: web3.fromWei(web3.eth.getBalance(web3.eth.accounts[i]), "ether"),
+                coinbase: base,
+                bg: bg
+            });
+        }
+
+        var app = angular.module("myApp", []);
+
+        app.controller("myController", function ($scope) {
+            $scope.accounts = arr;
+
+            $scope.send = function () {
+                alert($scope.sender);
+                alert($scope.receiver);
+
+                web3.eth.sendTransaction({
+                    from: $scope.sender,
+                    to: $scope.receiver,
+                    value: web3.toWei($scope.send_amount, "ether")
+                }, function (err, transactionHash) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(transactionHash);
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div ng-app="myApp" ng-controller="myController">
+        <table>
+            <tr>
+                <th>EOA Address</th>
+                <th>잔고(단위 ether)</th>
+            </tr>
+            <tr ng-repeat="acc in accounts">
+                <td style="color:{{acc.bg}}">{{acc.account}}</td>
+                <td>{{acc.balance}}</td>
+            </tr>
+        </table>
+
+        <div class="container">
+            <form action="/action_page.php">
+                <div class="row">
+                    <h2 style="text-align:center">계좌 송금</h2>
+                    <div class="vl">
+                        <span class="vl-innertext"></span>
+                    </div>
+
+                    <div class="col">
+                        <div class="hide-md-lg">
+                            <p>Or sign in manually:</p>
+                        </div>
+                        <label for="country">송금자</label>
+                        <select id="sender" name="sender" ng-model="sender">
+                            <option value="{{acc.account}}" ng-repeat="acc in accounts">{{acc.account}}</option>
+                        </select>
+
+                        <input type="text" name="send_amount" placeholder="송금할 금액 입력(ether)" ng-model="send_amount" />
+
+                    </div>
+
+                    <div class="col">
+                        <div class="hide-md-lg">
+                            <p>Or sign in manually:</p>
+                        </div>
+                        <label for="country">수신자</label>
+                        <select id="receiver" name="receiver" ng-model="receiver">
+                            <option value="{{acc.account}}" ng-repeat="acc in accounts">{{acc.account}}</option>
+                        </select>
+
+                        <input type="text" name="receive_amount" placeholder="받은 금액" readonly ng-model="receive_amount">
+                    </div>
+                    <input type="button" value="송금실행" style="margin-top:50px;" ng-click="send()">
+
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
